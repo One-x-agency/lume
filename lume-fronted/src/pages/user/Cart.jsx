@@ -6,15 +6,12 @@ const Cart = () => {
   const { cartItems } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
 
-  const total = cartItems.reduce(
-    (acc, item) => acc + item.price * item.qty,
-    0
-  );
+  const total = cartItems.reduce((acc, item) => acc + item.price * item.qty,0);
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-3xl rounded-xl bg-white p-6 shadow-lg">
-        
+
         <h2 className="mb-6 text-3xl font-bold text-gray-800">
           🛒 Your Cart
         </h2>
@@ -46,7 +43,7 @@ const Cart = () => {
                     } catch (err) {
                       toast.error(
                         err?.response?.data?.message ||
-                          "Error removing item from cart"
+                        "Error removing item from cart"
                       );
                     }
                   }}

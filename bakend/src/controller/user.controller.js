@@ -4,6 +4,9 @@ const jwt = require("jsonwebtoken")
 const transport = require("../utils/mailer")
 require("dotenv").config()
 
+// ✅ Password Regex
+const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+
 const signupController = async (req, res) => {
   try {
 
@@ -12,6 +15,13 @@ const signupController = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({
         message: "All fields are required"
+      })
+    }
+
+    // ✅ Password validation
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        message: "Password must be at least 8 characters and contain 1 special character"
       })
     }
 
@@ -49,18 +59,14 @@ const signupController = async (req, res) => {
     })
 
   } catch (error) {
-
     console.log(error)
-
     res.status(500).json({
       message: "Something went wrong"
     })
-
   }
 }
 
 const signinController = async (req, res) => {
-
   try {
 
     const { email, password } = req.body
@@ -108,19 +114,14 @@ const signinController = async (req, res) => {
     })
 
   } catch (error) {
-
     console.log(error)
-
     res.status(500).json({
       message: "Something went wrong"
     })
-
   }
-
 }
 
 const forgetPassword = async (req, res) => {
-
   try {
 
     const { email } = req.body
@@ -152,18 +153,13 @@ const forgetPassword = async (req, res) => {
     })
 
   } catch (error) {
-
     res.status(500).json({
       message: "Something went wrong"
     })
-
   }
-
 }
 
-
 const verifyOtp = async (req, res) => {
-
   try {
 
     const { email, otp } = req.body
@@ -193,18 +189,13 @@ const verifyOtp = async (req, res) => {
     })
 
   } catch (error) {
-
     res.status(500).json({
       message: "Something went wrong"
     })
-
   }
-
 }
 
-
 const resetPassword = async (req, res) => {
-
   try {
 
     const { email, newPassword } = req.body
@@ -214,6 +205,13 @@ const resetPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         message: "User not found"
+      })
+    }
+
+    // ✅ Password validation
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        message: "Password must be at least 8 characters and contain 1 special character"
       })
     }
 
@@ -230,19 +228,63 @@ const resetPassword = async (req, res) => {
     })
 
   } catch (error) {
-
     res.status(500).json({
       message: "Something went wrong"
     })
-
   }
-
 }
+
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await DB.USER.find().select("-password");
+    res.status(200).json({ users });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error fetching users" });
+  }
+};
+
+const getAdminStats = async (req, res) => {
+  try {
+    const totalUsers = await DB.USER.countDocuments();
+    const totalProducts = await DB.CLOTHES.countDocuments();
+    const totalCategories = await DB.CATEGORY.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalUsers,
+        totalProducts,
+        totalCategories
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error fetching admin stats" });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await DB.USER.findByIdAndDelete(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error deleting user" });
+  }
+};
 
 module.exports = {
   signupController,
   signinController,
   forgetPassword,
   verifyOtp,
-  resetPassword
+  resetPassword,
+  getAllUsers,
+  getAdminStats,
+  deleteUser
 }
